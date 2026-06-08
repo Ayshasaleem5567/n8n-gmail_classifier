@@ -51,6 +51,6 @@ Webhooks / Triggers
 
 
 
-## 👤 Author
+## Author
 
 Built as an automation project using n8n to demonstrate workflow automation and intelligent email processing.
