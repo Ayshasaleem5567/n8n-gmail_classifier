@@ -1,0 +1,1591 @@
+{
+  "name": "Gmail_classifier",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d7807213-dee3-432a-8cd7-fdc9e18b0d96",
+              "name": "headers.from",
+              "value": "={{ $json.From }}",
+              "type": "string"
+            },
+            {
+              "id": "3debb1c4-f59a-48a2-b51a-68ec187feaff",
+              "name": "headers.subject",
+              "value": "={{ $json.Subject }}",
+              "type": "string"
+            },
+            {
+              "id": "95e60a91-910b-4c58-8551-616fa541ad7a",
+              "name": "text",
+              "value": "={{ $json.snippet }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1872,
+        736
+      ],
+      "id": "b7bb911e-abb5-490c-8da0-42c31202dbf8",
+      "name": "Email Data"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.1-8b-instant",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -1632,
+        928
+      ],
+      "id": "8e5b5ac8-2e59-40e0-888f-44998bfb24b4",
+      "name": "Groq Model",
+      "credentials": {
+        "groqApi": {
+          "id": "Dus45s6Q9kHBM6Gp",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.headers.subject }}{{ $json.text }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=Classify this email into ONLY one category:  - Billing - Customer Support - High Priority - Promotional  Return ONLY the category name.  Subject:{{ $json.headers.subject }} Body: {{ $json.text }}"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -1632,
+        736
+      ],
+      "id": "86ca218d-55fb-4ecc-8ba0-c55c34b5d9e4",
+      "name": "Email Classifier"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.text }}",
+                    "rightValue": "Billing",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "47cffc72-fc14-4d41-896b-cf1c78bb07f5"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Billing"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "c16f5fbc-afe6-43c7-b668-d18db4361e15",
+                    "leftValue": "={{ $json.text }}",
+                    "rightValue": "Customer Support",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Support"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "7d5d7e04-ce4f-4ec4-a702-23abdc4154a6",
+                    "leftValue": "={{ $json.text }}",
+                    "rightValue": "High Priority",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Urgent"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "ac9827ba-f27b-4baf-8948-25ede5eec55f",
+                    "leftValue": "={{ $json.text }}",
+                    "rightValue": "=Promotional",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Promotions"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -1280,
+        704
+      ],
+      "id": "a900ce84-b298-40c8-b18e-4bc79c1c1f2f",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        320,
+        176
+      ],
+      "id": "9abf2b06-4de6-47aa-8920-7a2c7de3fb27",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "Dus45s6Q9kHBM6Gp",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        320,
+        528
+      ],
+      "id": "8c9269db-ba3e-4812-898a-ed22156149e7",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "Dus45s6Q9kHBM6Gp",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        320,
+        864
+      ],
+      "id": "95e29bd0-f7a7-4c1a-b527-6b04aebce43a",
+      "name": "Groq Chat Model2",
+      "credentials": {
+        "groqApi": {
+          "id": "Dus45s6Q9kHBM6Gp",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        320,
+        1216
+      ],
+      "id": "1f0b383c-e6d3-4c7b-ac8c-27ff1900091c",
+      "name": "Groq Chat Model3",
+      "credentials": {
+        "groqApi": {
+          "id": "Dus45s6Q9kHBM6Gp",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "label",
+        "operation": "create",
+        "name": "=Promotions",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -192,
+        1008
+      ],
+      "id": "1a6d5ea6-28c6-42b4-9d39-6c2f86e4b5c8",
+      "name": "Create a Promotions Label",
+      "webhookId": "3f9f51d4-e4d5-4904-95b0-946ffa3ce282",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YTA4VoKY7ebqwrkY",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "label",
+        "operation": "create",
+        "name": "=Urgent",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -192,
+        784
+      ],
+      "id": "542d34f5-41be-4b92-a28a-7d7e8ed0870b",
+      "name": "Create an Urgent Label",
+      "webhookId": "3f9f51d4-e4d5-4904-95b0-946ffa3ce282",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YTA4VoKY7ebqwrkY",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "label",
+        "operation": "create",
+        "name": "Billing",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -192,
+        384
+      ],
+      "id": "91e771b4-6bca-45f3-9d60-271d27a7905e",
+      "name": "Create a Billing Label",
+      "webhookId": "3f9f51d4-e4d5-4904-95b0-946ffa3ce282",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YTA4VoKY7ebqwrkY",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "label",
+        "operation": "create",
+        "name": "=Support",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -192,
+        576
+      ],
+      "id": "4a4e942c-40f7-4db2-bac6-aa74a5ae23c5",
+      "name": "Create a Support Label",
+      "webhookId": "3f9f51d4-e4d5-4904-95b0-946ffa3ce282",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YTA4VoKY7ebqwrkY",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "623dc5c7-cf5d-4048-a31a-a421cbd7af9c",
+              "leftValue": "={{ $input.first().json.exists }}",
+              "rightValue": "Promotions",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -400,
+        912
+      ],
+      "id": "581db066-33fd-4d96-a42a-45948e5820c6",
+      "name": "If Promotions Label Present"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "27dc6b0f-b427-4f25-b198-89722ee5bf5b",
+              "leftValue": "={{ $input.first().json.exists }}",
+              "rightValue": "Urgent",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -400,
+        704
+      ],
+      "id": "8f188370-1c08-4791-a8b9-85c831d5df80",
+      "name": "If Urgent Label Present"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7afc72f5-469b-453a-abb0-43e44d33f240",
+              "leftValue": "={{ $input.first().json.exists }}",
+              "rightValue": "Support",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -400,
+        512
+      ],
+      "id": "61d922bc-fdd1-4c79-a389-c394dbdba6e5",
+      "name": "If Support Label Present"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "51007cfb-9037-4ccf-beb2-54715250fbe6",
+              "leftValue": "={{ $input.first().json.exists }}",
+              "rightValue": "Billing",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -384,
+        304
+      ],
+      "id": "be71d1f6-254e-462d-93ad-db72194befa4",
+      "name": "If Billing Label Present"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You have received the following email:\n\n\nSubject: {{ $('Gmail Trigger').item.json.Subject }}\nMessage: {{ $('Gmail Trigger').item.json.snippet }}\n\nPlease write a professional reply to this email.",
+        "options": {
+          "systemMessage": "You are a friendly marketing assistant. You handle promotional \nemails, discount requests, partnership inquiries, and \nmarketing related questions.\n\nWhen responding:\n- Be enthusiastic and friendly\n- If they are asking for a discount, offer 10% with code SAVE10\n- If partnership inquiry, ask for their website and audience size\n- Keep responses short and engaging\n- Sign off as \"Marketing Team\"\n\nIMPORTANT: You MUST call the tool  'SendEmail' \nwith your response as the message body. Sending the email is \nmandatory. Do not finish without calling this tool.\nOnce you call the tool SendEmail successfully, you have completed your goal. Do not try to send the email again or verify it. Stop immediately and return a success message",
+          "maxIterations": 3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        432,
+        1024
+      ],
+      "id": "87f8b43a-eb11-4046-a7ed-ed95a14bde49",
+      "name": "Promotions Agent"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use this tool to send ONE email. Never call this tool more than once per conversation turn.",
+        "fromEmail": "={{ $('Gmail Trigger').item.json.To }}",
+        "toEmail": "={{ $('Gmail Trigger').item.json.From }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "emailFormat": "text",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Text', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSendTool",
+      "typeVersion": 2.1,
+      "position": [
+        720,
+        1200
+      ],
+      "id": "d0bf0db8-e186-43a1-906c-f3cb606a51c5",
+      "name": "SendEmail",
+      "webhookId": "4e9d729a-5b11-43fe-b03e-084d3900f40d",
+      "credentials": {
+        "smtp": {
+          "id": "LhtxQMcRSBiHaAUV",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -2112,
+        736
+      ],
+      "id": "81d36519-f901-4540-9c97-20ca26c3ea06",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YTA4VoKY7ebqwrkY",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Finding all the labels present in email",
+        "height": 928
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1040,
+        192
+      ],
+      "id": "53c8b0bc-bea7-4f69-b2d0-0e563aa9e0a7",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "Sending label id if label id is already present otherwise creating a label  by using label name",
+        "height": 1024,
+        "width": 656,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -464,
+        192
+      ],
+      "id": "14e50f6b-8e3c-4cef-9395-9411308e3f23",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "Agents which give responds to the specific query of a sender by sending an email",
+        "height": 1520,
+        "width": 576,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        256,
+        -128
+      ],
+      "id": "eb430e4e-ef55-4c1f-aaef-caa335f7c1b5",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "width": 416,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2160,
+        720
+      ],
+      "id": "d8b4296a-6340-4f0a-a306-4000715cd923",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 384,
+        "width": 208,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1328,
+        624
+      ],
+      "id": "2e495ff8-89b6-435e-8efc-bbcd6afa7cb4",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Gmail Trigger').first().json.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        528,
+        1216
+      ],
+      "id": "55ef4cbd-bd32-4902-88e2-6edd18638540",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "content": "Checking if  label exists and transforming Labels To Single Item(cleaning) ",
+        "height": 928,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -736,
+        192
+      ],
+      "id": "6815b93e-5efc-47db-b83c-125ddc86161b",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "resource": "label"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -960,
+        304
+      ],
+      "id": "dd5501b1-cbd8-466b-9612-a1af7ef23f06",
+      "name": "Get all labels",
+      "webhookId": "e85f3ba8-057c-4191-95c7-c296de4f7d76",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YTA4VoKY7ebqwrkY",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const labels = $input.all(); \nconst targetLabel = 'Billing';\n\nconst found = labels.find(item => item.json.name === targetLabel);\n\nif (found) {\n  return [{\n    json: {\n      exists: true,\n      labelId: found.json.id,\n      labelName: targetLabel\n    }\n  }];\n} else {\n  return [{\n    json: {\n      exists: false,\n      labelName: targetLabel\n    }\n  }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -656,
+        304
+      ],
+      "id": "8b5d89c3-875f-47e7-80ca-27d755c951fd",
+      "name": "Code "
+    },
+    {
+      "parameters": {
+        "jsCode": "const labels = $input.all(); \nconst targetLabel ='Support';\n\nconst found = labels.find(item => item.json.name === targetLabel);\n\nif (found) {\n  return [{\n    json: {\n      exists: true,\n      labelId: found.json.id,\n      labelName: targetLabel\n    }\n  }];\n} else {\n  return [{\n    json: {\n      exists: false,\n      labelName: targetLabel\n    }\n  }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -656,
+        512
+      ],
+      "id": "1336ccf7-160f-4e62-9162-adcc58678f62",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "jsCode": "const labels = $input.all(); \nconst targetLabel = 'Urgent';\n\nconst found = labels.find(item => item.json.name === targetLabel);\n\nif (found) {\n  return [{\n    json: {\n      exists: true,\n      labelId: found.json.id,\n      labelName: targetLabel\n    }\n  }];\n} else {\n  return [{\n    json: {\n      exists: false,\n      labelName: targetLabel\n    }\n  }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -656,
+        704
+      ],
+      "id": "c94ab6b5-b347-47d2-b269-b30af6d563f3",
+      "name": "Code      "
+    },
+    {
+      "parameters": {
+        "jsCode": "const labels = $input.all(); // these are your 16 label items\nconst targetLabel = 'Promotions';\n\nconst found = labels.find(item => item.json.name === targetLabel);\n\nif (found) {\n  return [{\n    json: {\n      exists: true,\n      labelId: found.json.id,\n      labelName: targetLabel\n    }\n  }];\n} else {\n  return [{\n    json: {\n      exists: false,\n      labelName: targetLabel\n    }\n  }];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -656,
+        912
+      ],
+      "id": "219ca854-f914-4f21-b644-92940f13b5f4",
+      "name": "Code                                "
+    },
+    {
+      "parameters": {
+        "resource": "label"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -960,
+        512
+      ],
+      "id": "24121195-97dc-4e65-a2a8-586f8beeaacc",
+      "name": "Get all labels     ",
+      "webhookId": "e85f3ba8-057c-4191-95c7-c296de4f7d76",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YTA4VoKY7ebqwrkY",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "label"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -960,
+        704
+      ],
+      "id": "eadf0543-8156-49bd-965a-fe5a00e5e4b4",
+      "name": "Get all labels                 ",
+      "webhookId": "e85f3ba8-057c-4191-95c7-c296de4f7d76",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YTA4VoKY7ebqwrkY",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "label"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -960,
+        912
+      ],
+      "id": "928ebaed-e8c6-4960-bc47-1187add2b6f1",
+      "name": "Get all labels                      ",
+      "webhookId": "e85f3ba8-057c-4191-95c7-c296de4f7d76",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YTA4VoKY7ebqwrkY",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "labelIds": "={{ $json.id }}"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        32,
+        288
+      ],
+      "id": "d4bbd07f-ab4c-46db-9051-7ad2093fa646",
+      "name": "Add Billing Label",
+      "webhookId": "a69c5ab3-2fa8-4b6d-a6e0-bc63d180b179",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YTA4VoKY7ebqwrkY",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "labelIds": "={{ $json.id }}"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        32,
+        496
+      ],
+      "id": "491453e8-03a8-4d5f-8529-88eb2cb1fe40",
+      "name": "Add Support Label",
+      "webhookId": "a69c5ab3-2fa8-4b6d-a6e0-bc63d180b179",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YTA4VoKY7ebqwrkY",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "labelIds": "={{ $json.id }}"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        32,
+        688
+      ],
+      "id": "4e231d81-078c-45c1-a0e3-4b9f116cac23",
+      "name": "Add Urgent Label",
+      "webhookId": "a69c5ab3-2fa8-4b6d-a6e0-bc63d180b179",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YTA4VoKY7ebqwrkY",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "labelIds": "={{ $json.id }}"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        32,
+        896
+      ],
+      "id": "57f8508a-bf1a-4e2b-adcd-34cf45e14815",
+      "name": "Add Promotions Label",
+      "webhookId": "a69c5ab3-2fa8-4b6d-a6e0-bc63d180b179",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YTA4VoKY7ebqwrkY",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use this tool to send ONE email. Never call this tool more than once per conversation turn.",
+        "fromEmail": "={{ $('Gmail Trigger').item.json.To }}",
+        "toEmail": "={{ $('Gmail Trigger').item.json.From }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "emailFormat": "text",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Text', `Write a helpful professional email response`, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSendTool",
+      "typeVersion": 2.1,
+      "position": [
+        -512,
+        880
+      ],
+      "id": "270909bf-2a5b-423f-8330-85d6a5f727d9",
+      "name": "SendEmail1",
+      "webhookId": "4e9d729a-5b11-43fe-b03e-084d3900f40d",
+      "credentials": {
+        "smtp": {
+          "id": "LhtxQMcRSBiHaAUV",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Gmail Trigger').first().json.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        528,
+        880
+      ],
+      "id": "164d72c0-8ade-455a-980f-67cdc10181e8",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Gmail Trigger').first().json.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        512,
+        528
+      ],
+      "id": "3f0bbfd8-e3c2-4c2e-b186-c58b5278d53f",
+      "name": "Simple Memory2"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Gmail Trigger').first().json.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        512,
+        176
+      ],
+      "id": "97001773-ee4d-4420-a43c-57a221ff85ed",
+      "name": "Simple Memory3"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You have received the following email:\n\n\nSubject: {{ $('Gmail Trigger').item.json.Subject }}\nMessage: {{ $('Gmail Trigger').item.json.snippet }}\n\nPlease write a professional reply to this email.",
+        "options": {
+          "systemMessage": "You are a professional billing support agent. Your job is to help \ncustomers with invoice questions, payment issues, refunds, and \nsubscription management.\n\nWhen responding:\n- Always be polite and empathetic\n- Reference specific amounts or dates if mentioned\n- Offer clear next steps\n- If refund is needed, confirm you have initiated the process\n- Sign off as \"Billing Support Team\"\n\nIMPORTANT: You MUST call the tool  'SendEmail' \nwith your response as the message body. Sending the email is \nmandatory. Do not finish without calling this tool.\nOnce you call the tool SendEmail successfully, you have completed your goal. Do not try to send the email again or verify it. Stop immediately and return a success message",
+          "maxIterations": 3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        416,
+        -48
+      ],
+      "id": "2e70c7ac-5262-4a9c-8b10-4bac11f6247a",
+      "name": "Billing  Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You have received the following email:\n\n\nSubject: {{ $('Gmail Trigger').item.json.Subject }}\nMessage: {{ $('Gmail Trigger').item.json.snippet }}\n\nPlease write a professional reply to this email.",
+        "options": {
+          "systemMessage": "You are a helpful customer support agent. Your job is to solve \ntechnical issues, answer product questions, and troubleshoot \nproblems for customers.\n\nWhen responding:\n- Diagnose the problem clearly\n- Give step-by-step solutions\n- Be patient and easy to understand\n- If issue cant be resolved, escalate by saying \n  \"I am escalating this to our senior team\"\n- Sign off as \"Customer Support Team\"\n\n\nIMPORTANT: You MUST call the tool  'SendEmail' \nwith your response as the message body. Sending the email is \nmandatory. Do not finish without calling this tool.\nOnce you call the tool SendEmail successfully, you have completed your goal. Do not try to send the email again or verify it. Stop immediately and return a success message",
+          "maxIterations": 3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        416,
+        320
+      ],
+      "id": "e01a0c45-8d97-4365-a7f2-67d26cdc8cd7",
+      "name": "Support Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You have received the following email:\n\n\nSubject: {{ $('Gmail Trigger').item.json.Subject }}\nMessage: {{ $('Gmail Trigger').item.json.snippet }}\n\nPlease write a professional reply to this email.",
+        "options": {
+          "systemMessage": "You are an emergency response agent. You handle critical and \ntime-sensitive issues that need IMMEDIATE attention.\n\nWhen responding:\n- Acknowledge the urgency immediately\n- Respond within the first line that this is being treated \n  as high priority\n- Give immediate temporary solutions if possible\n- Always say a senior team member will follow up within 1 hour\n- Never dismiss or downplay the issue\n- Sign off as \"Priority Response Team\"\n\n\nIMPORTANT: You MUST call the tool  'SendEmail' \nwith your response as the message body. Sending the email is \nmandatory. Do not finish without calling this tool.\nOnce you call the tool SendEmail successfully, you have completed your goal. Do not try to send the email again or verify it. Stop immediately and return a success message",
+          "maxIterations": 3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        432,
+        688
+      ],
+      "id": "fbbe3654-1938-4ffb-9769-0434c79d63b1",
+      "name": "Urgent Agent"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use this tool to send ONE email. Never call this tool more than once per conversation turn.",
+        "fromEmail": "={{ $('Gmail Trigger').item.json.To }}",
+        "toEmail": "={{ $('Gmail Trigger').item.json.From }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "emailFormat": "text",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Text', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSendTool",
+      "typeVersion": 2.1,
+      "position": [
+        720,
+        864
+      ],
+      "id": "fac27cb2-660a-497f-9ec7-1dc3ad859056",
+      "name": "SendEmail ",
+      "webhookId": "33fa95fd-abe4-487b-84dc-c1714611602f",
+      "credentials": {
+        "smtp": {
+          "id": "LhtxQMcRSBiHaAUV",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use this tool to send ONE email. Never call this tool more than once per conversation turn.",
+        "fromEmail": "{{ $('Gmail Trigger').item.json.To }}",
+        "toEmail": "={{ $('Gmail Trigger').item.json.From }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "emailFormat": "text",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Text', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSendTool",
+      "typeVersion": 2.1,
+      "position": [
+        704,
+        512
+      ],
+      "id": "c400752b-2527-4eb3-b5d9-48ae8a272f70",
+      "name": "Send Email",
+      "webhookId": "d44cae43-091f-4764-bee5-07c891f83532",
+      "credentials": {
+        "smtp": {
+          "id": "LhtxQMcRSBiHaAUV",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use this tool to send ONE email. Never call this tool more than once per conversation turn.",
+        "fromEmail": "={{ $('Gmail Trigger').item.json.To }}",
+        "toEmail": "={{ $('Gmail Trigger').item.json.From }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "emailFormat": "text",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Text', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSendTool",
+      "typeVersion": 2.1,
+      "position": [
+        704,
+        144
+      ],
+      "id": "e1420f40-c28a-4110-862f-63f6717c9e0d",
+      "name": "SendEmail           ",
+      "webhookId": "6449f4ca-f93d-4dda-898f-f47873fa01aa",
+      "credentials": {
+        "smtp": {
+          "id": "LhtxQMcRSBiHaAUV",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 464,
+        "width": 272
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1664,
+        608
+      ],
+      "id": "691874a5-a70c-4921-bb77-904f7e1cb0ff",
+      "name": "Sticky Note3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Email Data": {
+      "main": [
+        [
+          {
+            "node": "Email Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Email Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Classifier": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Get all labels",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get all labels     ",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get all labels                 ",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get all labels                      ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Billing  Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Support Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Urgent Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Promotions Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a Promotions Label": {
+      "main": [
+        [
+          {
+            "node": "Add Promotions Label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an Urgent Label": {
+      "main": [
+        [
+          {
+            "node": "Add Urgent Label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a Billing Label": {
+      "main": [
+        [
+          {
+            "node": "Add Billing Label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a Support Label": {
+      "main": [
+        [
+          {
+            "node": "Add Support Label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Promotions Label Present": {
+      "main": [
+        [
+          {
+            "node": "Add Promotions Label",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create a Promotions Label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Urgent Label Present": {
+      "main": [
+        [
+          {
+            "node": "Add Urgent Label",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create an Urgent Label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Support Label Present": {
+      "main": [
+        [
+          {
+            "node": "Add Support Label",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create a Support Label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Billing Label Present": {
+      "main": [
+        [
+          {
+            "node": "Add Billing Label",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create a Billing Label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SendEmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "Promotions Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Email Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Promotions Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get all labels": {
+      "main": [
+        [
+          {
+            "node": "Code ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code ": {
+      "main": [
+        [
+          {
+            "node": "If Billing Label Present",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "If Support Label Present",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code      ": {
+      "main": [
+        [
+          {
+            "node": "If Urgent Label Present",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code                                ": {
+      "main": [
+        [
+          {
+            "node": "If Promotions Label Present",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get all labels     ": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get all labels                 ": {
+      "main": [
+        [
+          {
+            "node": "Code      ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get all labels                      ": {
+      "main": [
+        [
+          {
+            "node": "Code                                ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Billing Label": {
+      "main": [
+        [
+          {
+            "node": "Billing  Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Support Label": {
+      "main": [
+        [
+          {
+            "node": "Support Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Urgent Label": {
+      "main": [
+        [
+          {
+            "node": "Urgent Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Promotions Label": {
+      "main": [
+        [
+          {
+            "node": "Promotions Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "Urgent Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "Support Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory3": {
+      "ai_memory": [
+        [
+          {
+            "node": "Billing  Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SendEmail ": {
+      "ai_tool": [
+        [
+          {
+            "node": "Urgent Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email": {
+      "ai_tool": [
+        [
+          {
+            "node": "Support Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SendEmail           ": {
+      "ai_tool": [
+        [
+          {
+            "node": "Billing  Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "a978d537-6797-4659-be7b-e63ad48ccee6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0d388e09ca93478299c592abc48bf71bc3ae17340f4ead464101c63cfe0a86bd"
+  },
+  "id": "0kruNYgJXZU4fWIc",
+  "tags": []
+}
